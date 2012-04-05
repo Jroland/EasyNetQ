@@ -52,5 +52,11 @@ namespace EasyNetQ.Scheduler.Tests
         {
             get { return true; }
         }
+
+
+        public void Publish<T>(T message, byte priority)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

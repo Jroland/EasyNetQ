@@ -85,17 +85,22 @@ namespace EasyNetQ
 
         public void Publish<T>(T message)
         {
-            if(message == null)
+            Publish<T>(message, 0);
+        }
+
+        public void Publish<T>(T message, byte priority)
+        {
+            if (message == null)
             {
                 throw new ArgumentNullException("message");
             }
 
-        	var typeName = serializeType(typeof (T));
-        	var exchangeName = GetExchangeName<T>();
-        	var topic = GetTopic<T>();
+            var typeName = serializeType(typeof(T));
+            var exchangeName = GetExchangeName<T>();
+            var topic = GetTopic<T>();
             var messageBody = serializer.MessageToBytes(message);
 
-            RawPublish(exchangeName, topic, typeName, messageBody);
+            RawPublish(exchangeName, topic, typeName, messageBody, priority);
         }
 
         // channels should not be shared between threads.
@@ -106,11 +111,11 @@ namespace EasyNetQ
         {
         	var exchangeName = typeName;
         	var topic = typeName;
-        	RawPublish(exchangeName, topic, typeName, messageBody);
+        	RawPublish(exchangeName, topic, typeName, messageBody, 0);
         }
 
 
-    	public void RawPublish(string exchangeName, string topic, string typeName, byte[] messageBody)
+    	public void RawPublish(string exchangeName, string topic, string typeName, byte[] messageBody, byte priority)
         {
             if (!connection.IsConnected)
             {
@@ -130,6 +135,7 @@ namespace EasyNetQ
                 defaultProperties.SetPersistent(false);
                 defaultProperties.Type = typeName;
                 defaultProperties.CorrelationId = getCorrelationId();
+                defaultProperties.Priority = priority;
 
                 threadLocalPublishChannel.Value.BasicPublish(
                     exchangeName, // exchange
