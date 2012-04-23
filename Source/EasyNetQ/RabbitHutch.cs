@@ -24,9 +24,9 @@ namespace EasyNetQ
         /// <returns>
         /// A new RabbitBus instance.
         /// </returns>
-        public static IBus CreateBus(string connectionString)
+        public static IBus CreateBus(string connectionString, ushort prefetchCount = 1000)
         {
-            return CreateBus(connectionString, new ConsoleLogger());
+            return CreateBus(connectionString, new ConsoleLogger(), prefetchCount);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace EasyNetQ
         /// <returns>
         /// A new RabbitBus instance.
         /// </returns>
-        public static IBus CreateBus(string connectionString, IEasyNetQLogger logger)
+        public static IBus CreateBus(string connectionString, IEasyNetQLogger logger, ushort prefetchCount = 1000)
         {
             if(connectionString == null)
             {
@@ -63,7 +63,8 @@ namespace EasyNetQ
                 connectionValues.VirtualHost,
                 connectionValues.UserName, 
                 connectionValues.Password, 
-                logger);
+                logger,
+                prefetchCount);
         }
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace EasyNetQ
         /// <returns>
         /// A new RabbitBus instance.
         /// </returns>
-        public static IBus CreateBus(string hostName, string virtualHost, string username, string password, IEasyNetQLogger logger)
+        public static IBus CreateBus(string hostName, string virtualHost, string username, string password, IEasyNetQLogger logger, ushort prefetchCount = 1000)
         {
             if(hostName == null)
             {
@@ -128,7 +129,9 @@ namespace EasyNetQ
                 new QueueingConsumerFactory(logger, consumerErrorStrategy),
                 connectionFactory,
                 logger, 
-                CorrelationIdGenerator.GetCorrelationId);
+                CorrelationIdGenerator.GetCorrelationId,
+                null,
+                prefetchCount);
         }
 
         /// <summary>

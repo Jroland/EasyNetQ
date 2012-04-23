@@ -32,7 +32,7 @@ namespace EasyNetQ
 
         // prefetchCount determines how many messages will be allowed in the local in-memory queue
         // setting to zero makes this infinite, but risks an out-of-memory exception.
-        private const int prefetchCount = 1000; 
+        private readonly ushort _prefetchCount; 
 
         public RabbitBus(
             SerializeType serializeType, 
@@ -41,7 +41,8 @@ namespace EasyNetQ
             IConnectionFactory connectionFactory, 
             IEasyNetQLogger logger,
 			Func<string> getCorrelationId,
-			IConventions conventions = null)
+			IConventions conventions = null,
+            ushort prefetchCount = 1000)
         {
             if(serializeType == null)
             {
@@ -64,6 +65,8 @@ namespace EasyNetQ
                 throw new ArgumentNullException("getCorrelationId");
             }
 
+            _prefetchCount = prefetchCount;
+
 			// Use default conventions if none were supplied.
 			if (conventions == null)
 				conventions = new Conventions();
@@ -74,6 +77,7 @@ namespace EasyNetQ
             this.serializer = serializer;
 			this.getCorrelationId = getCorrelationId;
 			this.conventions = conventions;
+            
 
             connection = new PersistentConnection(connectionFactory, logger);
             connection.Connected += OnConnected;
@@ -217,7 +221,7 @@ namespace EasyNetQ
                 modelList.Add( channel );
                 DeclarePublishExchange(channel, exchangeName);
 
-                channel.BasicQos(0, prefetchCount, false);
+                channel.BasicQos(0, _prefetchCount, false);
 
                 var queue = channel.QueueDeclare(
                     queueName,          // queue
